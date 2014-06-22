@@ -21,3 +21,7 @@ $("#startGame").on('click', function() {
 socket.on('LEVEL_START', function(data) {
 	console.log("Game started!");
 });
+
+socket.on('JOIN', function(data){
+	console.log("Successfully joined as player #", data.playerId);
+});

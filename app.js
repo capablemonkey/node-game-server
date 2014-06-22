@@ -33,7 +33,8 @@ var PLAYERS_PER_ROOM = 4;
 
 // game state:
 
-function Player(socket, controlCount, type) {
+function Player(socket, controlCount, type, id) {
+	this.id = id;
 	this.socket = socket;				// store socket.io socket here.
 	this.controlCount = controlCount;	// # of controls
 	this.type = type;					// client type i.e. "oculus"
@@ -47,7 +48,10 @@ function GameState() {
 }
 
 GameState.prototype.addPlayer = function(socket, controlCount, type) {
-	this.players.push(new Player(socket, controlCount, type));
+	var id = this.players.length + 1;
+	newPlayer = new Player(socket, controlCount, type, id);
+	this.players.push(newPlayer);
+	return newPlayer;
 };
 
 GameState.prototype.startGame = function() {
@@ -68,8 +72,11 @@ io.on('connection', function (socket) {
 
   socket.on('JOIN', function (data) {
     console.log('attempting to join player: ', data);
-    GAME.addPlayer(socket, data.controlCount, data.type);
+    newPlayer = GAME.addPlayer(socket, data.controlCount, data.type);
     console.log('Player #', GAME.players.length, ' joined!');
+    socket.emit("JOIN", {
+    	playerId: newPlayer.id
+    });
   });
 
   socket.on('GAME_START', function(data) {
