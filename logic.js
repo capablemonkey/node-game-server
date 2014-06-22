@@ -3,17 +3,24 @@ var uuid = require('node-uuid');
 var config = require('./config');
 
 module.exports = function() {
-	// Game logic:
 
+	/*
+	 * Game makes available all the Controls and Tasks
+	 * initialized in init.js
+	 */
 	function Game(tasks, controls) {
 		var that = this;
 		this.tasks = tasks;
-		this.controls = {};
+		this.controls = {};						// {controlId: control}
 
 		controls.forEach(function(control) {
 			that.controls[control.controlId] = control;
 		});
 	}
+
+	/*
+	 * GameState stores info about the current state of the game
+	 */
 
 	function GameState(game) {
 		this.players = [];
@@ -57,6 +64,8 @@ module.exports = function() {
 	/*
 	 *	Manages the Task list, removes tasks when they expire
 	 *  and replaces them with a new task.
+	 *  TODO: implement TaskManager
+	 *  + needs to be able to 
 	 */
 	function TaskManager() {
 		tasks = {
@@ -68,32 +77,37 @@ module.exports = function() {
 	}
 
 	TaskManager.prototype.failTask = function(task) {
-		// kill Task; remove it from tasks array
-		this.tasks = _.without(this.tasks, task);
+		// TODO: kill Task; remove it from tasks array
+
+		// TODO: deduct health from gamestate
+
+		// make a new task
+		this.newTask();
 	};
 
 	TaskManager.prototype.fulfillTask = function(task) {
 		// kill existing timer
 		clearTimeout(task.timeoutId);
 
-		// kill Task; remove it from tasks array
-		this.tasks = _.without(this.tasks, task);
-	};
+		// TODO: kill Task; remove it from this.tasks
+		
+		// add new task
+		this.newTask();
 
-	TaskManager.prototype.addTask = function(task) {
-		var that = this;
-		this.tasks.push(task);
-
-		// start timer
-		task.timeoutId = setTimeout(function() {
-			that.failTask(task);
-			// TODO: add health property to task to decrement by
-			GAME.health -= 5;
-		}, milliseconds);
+		// TODO: increase score in gamestate
 	};
 
 	TaskManager.prototype.newTask = function() {
 		newTask = _.first(_.shuffle(TASKS));
+
+		// TODO: pick new task at random from Game.tasks
+		// TODO: make sure chosen tasks do not act on the same controlId
+		// TODO: make sure each controlId belongs to a control which belongs to a player
+
+		// TODO: start timer on task, should call this.failTask after task.timeLimit time
+
+		// TODO: emit task to client, keep track of which client
+
 	};
 
 	function Task(text, requiredValue, timeLimit, controlId) {
@@ -140,9 +154,9 @@ module.exports = function() {
 	};
 
 	GameState.prototype.endLevel = function() {
-		// emit LEVEL_END
-		// start next level in 5 seconds
-		// set state to INTERMISSION
+		// TODO: emit LEVEL_END
+		// TODO: start next level in 5 seconds
+		// TODO: set state to INTERMISSION
 		return true;
 	};
 
@@ -185,6 +199,10 @@ module.exports = function() {
 		});
 	};
 
+	/*
+	* Pick controls suitable for each client and emit them to the client
+	*/
+
 	GameState.prototype.assignControls = function(controls) {
 		var controlPool = _.shuffle(this.game.controls);
 
@@ -211,10 +229,9 @@ module.exports = function() {
 	};
 
 	GameState.prototype.assignTasks = function() {
+		// TODO: when TaskManager is done implemented, this should just call TaskManager.newTask 4 times.
+
 		// shuffle and take the first 4 tasks
-		// TODO: make sure chosen tasks do not act on the same controlId
-		// TODO: make sure each controlId belongs to a control which belongs to a player
-		// TODO: make sure task is destroyed after time limit
 		this.tasks = _.cloneDeep(_.first(_.shuffle(TASKS), 4));
 
 		tasksToEmit = _.cloneDeep(this.tasks);
@@ -229,6 +246,10 @@ module.exports = function() {
 			});
 		});
 	};
+
+	/*
+	* Handle ACTION event from client.
+	*/
 
 	GameState.prototype.doAction = function(controlId, value) {
 		// check that state is LEVEL_IN_PROGRESS
