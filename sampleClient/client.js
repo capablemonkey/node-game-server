@@ -5,8 +5,9 @@ $("#join").on('click', function() {
 
 	socket.emit("JOIN", {
 		client: {
-			controlCount: 4,
-			type: "web"
+			controlCount: 2,
+			type: "web",
+			accepts: ["button", "slider", "toggle", "dial"]
 		}
 	});
 
@@ -43,4 +44,8 @@ socket.on('JOIN', function(data){
 
 socket.on('GAME_STATE', function(data) {
 	console.log(data);
+});
+
+socket.on('ASSIGN_CONTROLS', function(data) {
+	console.log("You are assigned these controls: ", data.controls);
 })

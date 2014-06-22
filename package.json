@@ -1,6 +1,8 @@
 {
 	"dependencies": {
 		"socket.io": "*",
-		"node-static": "*"
+		"node-static": "*",
+		"lodash": "*",
+		"node-uuid": "*"
 	}
 }

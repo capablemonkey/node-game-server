@@ -1,6 +1,8 @@
 var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
+var _  = require('lodash');
+var uuid = require('node-uuid');
 
 var PORT = process.env.PORT || 5000;
 
@@ -27,18 +29,21 @@ app.listen(PORT);
 
 console.log("Static sample client files are being served...");
 
-// Game config:
-
-var PLAYERS_PER_ROOM = 4;
-var STATE_BROADCAST_INTERVAL = 1000;
-
-// game state:
+// Game logic:
 
 function Player(socket, controlCount, type, id) {
 	this.id = id;
-	this.socket = socket;				// store socket.io socket here.
-	this.controlCount = controlCount;	// # of controls
-	this.type = type;					// client type i.e. "oculus"
+	this.socket = socket;								// store socket.io socket here.
+	this.controlCount = controlCount;		// # of controls expecting
+	this.type = type;										// client type i.e. "oculus"
+	this.controls = [];									// store actual controls here
+}
+
+function Control(name, type, values) {
+	this.name = name;
+	this.type = type;
+	this.values = values || type.values;
+	this.controlId = uuid.v1();
 }
 
 function GameState() {
@@ -63,7 +68,7 @@ GameState.prototype.addPlayer = function(socket, controlCount, type) {
 GameState.prototype.startGame = function() {
 	console.log("Attempting to start game...");
 
-	if (this.players.length === PLAYERS_PER_ROOM) {
+	if (this.players.length === PLAYERS_PER_ROOM && this.state == "PRE_GAME") {
 		console.log("Game starting...");
 		this.players.forEach(function(player) {
 			player.socket.emit("GAME_START", {
@@ -78,7 +83,7 @@ GameState.prototype.startGame = function() {
 	} 
 
 	else {
-		console.log("Couldn't start game, not enough players.");
+		console.log("Couldn't start game. Not enough players or game already started.");
 		this.players.forEach(function(player) {
 			player.socket.emit("GAME_START", {
 				success: false
@@ -95,6 +100,8 @@ GameState.prototype.startLevel = function() {
 			level: level
 		});
 	});
+
+	this.assignControls();
 };
 
 GameState.prototype.broadcastState = function(socket) {
@@ -103,8 +110,69 @@ GameState.prototype.broadcastState = function(socket) {
 		score: this.score,
 		players: this.players.length,
 		status: this.state
-	})
+	});
 };
+
+GameState.prototype.assignControls = function() {
+	var CONTROL_POOL = _.shuffle(CONTROLS);
+
+	// TODO: somehow figure out how controls are to be split up based on types the client accepts
+	this.players.forEach(function(player) {
+		player.controls.push(CONTROL_POOL.pop());
+		player.controls.push(CONTROL_POOL.pop());
+	});
+
+	this.players.forEach(function(player) {
+		player.socket.emit("ASSIGN_CONTROLS", {
+			controls: player.controls
+		});
+	});
+};
+
+// Game config:
+
+var PLAYERS_PER_ROOM = 4;
+var STATE_BROADCAST_INTERVAL = 1000;
+
+// control types and their default values
+var CONTROL_TYPES = {
+	'toggle': {
+		name: "toggle",
+		values: ["on", "off"]
+	},
+	'dial': {
+		name: 'dial',
+		values: ["1", "2", "3", "4", "5"]
+	},
+	'button': {
+		name: 'button',
+		values: ['press']
+	},
+	'slider': {
+		name: 'slider',
+		values: ["1", "2", "3", "4", "5"]
+	},
+	'shake': {
+		name: 'shake',
+		values: ['shake']
+	},
+	'flip': {
+		name: 'flip',
+		values: ['flip']
+	}
+};
+
+var CONTROLS = [
+	new Control("Megaflux power", CONTROL_TYPES.dial, ["10", "20", "30"]),
+	new Control("Eject waste", CONTROL_TYPES.button),
+	new Control("Launch nuke", CONTROL_TYPES.button),
+	new Control("Flush toilet", CONTROL_TYPES.button),
+	new Control("Engine Power", CONTROL_TYPES.toggle),
+	new Control("Engage shitty music", CONTROL_TYPES.toggle),
+	new Control("Seatbelt indicator", CONTROL_TYPES.toggle),
+	new Control("Swag level", CONTROL_TYPES.slider),
+	new Control("Music volume", CONTROL_TYPES.slider)
+];
 
 var GAME = new GameState();
 
