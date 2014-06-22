@@ -64,8 +64,7 @@ module.exports = function() {
 	/*
 	 *	Manages the Task list, removes tasks when they expire
 	 *  and replaces them with a new task.
-	 *  TODO: implement TaskManager
-	 *  + needs to be able to 
+	 *  TODO: implement TaskManager!!!
 	 */
 	function TaskManager() {
 		tasks = {
@@ -268,7 +267,7 @@ module.exports = function() {
 
 		console.log(foo);
 
-		// satisfy task if equal to required value
+		// TODO: if value is equal to the task's required value, call task.fulfillTask()
 
 	};
 
