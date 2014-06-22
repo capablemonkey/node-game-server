@@ -62,18 +62,37 @@ GameState.prototype.startGame = function() {
 	if (this.players.length === PLAYERS_PER_ROOM) {
 		console.log("Game starting...");
 		this.players.forEach(function(player) {
-			player.socket.emit("LEVEL_START", {
+			player.socket.emit("GAME_START", {
 				success: true
 			});
 		});
-	} else {
+
+		// proceed to next step
+		this.startLevel();
+	} 
+
+	else {
 		console.log("Couldn't start game, not enough players.");
 		this.players.forEach(function(player) {
-			player.socket.emit("LEVEL_START", {
+			player.socket.emit("GAME_START", {
 				success: false
 			});
 		});
 	}
+};
+
+GameState.prototype.startLevel = function() {
+	var level = this.level;
+
+	this.players.forEach(function(player) {
+		player.socket.emit("LEVEL_START", {
+			level: level
+		});
+	});
+};
+
+GameState.prototype.broadcastState = function() {
+
 };
 
 var GAME = new GameState();

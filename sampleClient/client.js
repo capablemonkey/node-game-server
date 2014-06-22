@@ -24,13 +24,17 @@ $("#restartGame").on('click', function() {
 	socket.emit("GAME_RESTART", {});
 });
 
-socket.on('LEVEL_START', function(data) {
+socket.on('GAME_START', function(data) {
 	if (data.success === true) {
 		console.log("Game started!");
 	}
 	else if (data.success === false) {
 		console.log("Someone tried to start the game, but that failed.");
 	}
+});
+
+socket.on('LEVEL_START', function(data) {
+	console.log("Level #", data.level ," started!");
 });
 
 socket.on('JOIN', function(data){
