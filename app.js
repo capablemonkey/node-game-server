@@ -30,6 +30,7 @@ console.log("Static sample client files are being served...");
 // Game config:
 
 var PLAYERS_PER_ROOM = 4;
+var STATE_BROADCAST_INTERVAL = 1000;
 
 // game state:
 
@@ -45,6 +46,9 @@ function GameState() {
 	this.tasks = [];
 	this.state = "PRE_GAME";
 	this.level = 1;
+
+	this.health = 100;
+	this.score = 100;
 
 	console.log("New game state set up!");
 }
@@ -67,6 +71,8 @@ GameState.prototype.startGame = function() {
 			});
 		});
 
+		// set status:
+		this.state = "GAME_STARTED";
 		// proceed to next step
 		this.startLevel();
 	} 
@@ -91,8 +97,13 @@ GameState.prototype.startLevel = function() {
 	});
 };
 
-GameState.prototype.broadcastState = function() {
-
+GameState.prototype.broadcastState = function(socket) {
+	socket.emit('GAME_STATE', {
+		health: this.health,
+		score: this.score,
+		players: this.players.length,
+		status: this.state
+	})
 };
 
 var GAME = new GameState();
@@ -102,6 +113,11 @@ console.log("Game state set up");
 // actual socket handling:
 
 io.on('connection', function (socket) {
+	// broadcast game state periodically:
+	setInterval(function() {
+		GAME.broadcastState(socket);
+	}, STATE_BROADCAST_INTERVAL);
+
   socket.on('JOIN', function (data) {
     console.log('attempting to join player: ', data);
     newPlayer = GAME.addPlayer(socket, data.controlCount, data.type);

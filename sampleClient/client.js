@@ -40,3 +40,7 @@ socket.on('LEVEL_START', function(data) {
 socket.on('JOIN', function(data){
 	console.log("Successfully joined as player #", data.playerId);
 });
+
+socket.on('GAME_STATE', function(data) {
+	console.log(data);
+})
