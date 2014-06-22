@@ -48,4 +48,8 @@ socket.on('GAME_STATE', function(data) {
 
 socket.on('ASSIGN_CONTROLS', function(data) {
 	console.log("You are assigned these controls: ", data.controls);
-})
+});
+
+socket.on('TASK', function(data) {
+	console.log("You just got a task: ", data.task);
+});

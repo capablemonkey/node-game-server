@@ -39,23 +39,40 @@ function Player(socket, controlCount, type, id) {
 	this.controls = [];									// store actual controls here
 }
 
-function Control(name, type, values) {
+function Control(name, type, values, possibleTasks) {
+	that = this;
 	this.name = name;
 	this.type = type.name;
 	this.values = values || type.values;
 	this.controlId = uuid.v1();
+
+	// bind tasks to this instance of control
+	this.tasks = possibleTasks.map(function(task) {
+		task.controlId = that.controlId;
+		return task;
+	});
+
+	this.currentValue = null;
 }
 
 function GameState() {
 	this.players = [];
 	this.tasks = [];
 	this.state = "PRE_GAME";
-	this.level = 1;
+	this.controls = [];
+	this.level = 0;
 
 	this.health = 100;
 	this.score = 100;
 
 	console.log("New game state set up!");
+}
+
+function Task(text, requiredValue, timeLimit, controlId) {
+	this.text = text;
+	this.controlId = controlId || null;
+	this.requiredValue = requiredValue;
+	this.timeLimit = timeLimit;
 }
 
 GameState.prototype.addPlayer = function(socket, controlCount, type) {
@@ -93,7 +110,11 @@ GameState.prototype.startGame = function() {
 };
 
 GameState.prototype.startLevel = function() {
-	var level = this.level;
+	// clear control and task state:
+	this.controls = null;
+	this.tasks = null;
+
+	var level = this.level += 1;
 
 	this.players.forEach(function(player) {
 		player.socket.emit("LEVEL_START", {
@@ -102,6 +123,10 @@ GameState.prototype.startLevel = function() {
 	});
 
 	this.assignControls();
+
+	console.log(this.tasks);
+
+	this.assignTasks();
 };
 
 GameState.prototype.broadcastState = function(socket) {
@@ -131,7 +156,23 @@ GameState.prototype.assignControls = function() {
 	});
 };
 
+GameState.prototype.assignTasks = function() {
+	// shuffle and take the first 4 tasks
+	// TODO: make sure chosen tasks do not act on the same controlId
+	this.tasks = _.first(_.shuffle(TASKS), 4);
 
+	tasksToEmit = this.tasks;
+	
+	this.players.forEach(function(player) {
+		var task = tasksToEmit.pop();
+		player.socket.emit("TASK", {
+			task: {
+				text: task.text,
+				time: task.timeLimit
+			}
+		});
+	});
+};
 
 // Game config:
 
@@ -166,19 +207,39 @@ var CONTROL_TYPES = {
 	}
 };
 
-var CONTROLS = [
-	new Control("Megaflux power", CONTROL_TYPES.dial, ["10", "20", "30"]),
-	new Control("Eject waste", CONTROL_TYPES.button),
-	new Control("Launch nuke", CONTROL_TYPES.button),
-	new Control("Flush toilet", CONTROL_TYPES.button),
-	new Control("Engine Power", CONTROL_TYPES.toggle),
-	new Control("Engage shitty music", CONTROL_TYPES.toggle),
-	new Control("Seatbelt indicator", CONTROL_TYPES.toggle),
-	new Control("Swag level", CONTROL_TYPES.slider),
-	new Control("Music volume", CONTROL_TYPES.slider)
-];
 
 var GAME = new GameState();
+var CONTROLS = [
+	new Control("Megaflux power", CONTROL_TYPES.dial, ["10", "20", "30"], [
+		new Task("Set Megaflux power to 10", "10", 5000),
+		new Task("Set Megaflux power to 20", "20", 5000),
+		new Task("Set Megaflux power to 30", "30", 5000)
+		]),
+	new Control("Eject waste", CONTROL_TYPES.button, null, [
+		new Task("Eject Waste", "press", 5000)
+		]),
+	new Control("Launch nuke", CONTROL_TYPES.button, null, [
+		new Task("Launch Nuke", "press", 5000),
+		]),
+	new Control("Flush toilet", CONTROL_TYPES.button, null, [
+		]),
+	new Control("Engine Power", CONTROL_TYPES.toggle, null, [
+		new Task("Turn off engine", "off", 5000),
+		new Task("Turn on engine", "on", 5000)
+		]),
+	new Control("Engage shitty music", CONTROL_TYPES.toggle, null, [
+		]),
+	new Control("Seatbelt indicator", CONTROL_TYPES.toggle, null, [
+		]),
+	new Control("Swag level", CONTROL_TYPES.slider, null, [
+		]),
+	new Control("Music volume", CONTROL_TYPES.slider, null, [
+		])
+];
+
+TASKS = _.flatten(CONTROLS.map(function(control) {
+	return control.tasks;
+}));
 
 console.log("Game state set up");
 
