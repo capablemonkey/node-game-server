@@ -2,7 +2,7 @@ var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
 
-var PORT = 5000;
+var PORT = process.env.PORT || 5000;
 
 // Serve sampleClient static files
 function handler (req, res) {
