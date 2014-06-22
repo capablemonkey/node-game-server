@@ -11,26 +11,28 @@ Interface
 =========
 Server sends / client receives
 ------------------------------
-ASSIGN_CONTROLS
+`ASSIGN_CONTROLS`
 
 	{
 		controls: [
-	{
-	type: “toggle”,
-	name: “Shitty music”,
-	values: [“on”, “off”],
-	controlId: “abx123”
-	},
-	{
-	type: “button”,
-	name: “Button Label”,
-	controlId: “abx123”
-	},
-	…
-	]
+			{
+				type: “toggle”,
+				name: “Turn stove on”,
+				values: [“on”, “off”],
+				controlId: “abx123”
+			},
+			{
+				type: “button”,
+				name: “Eject waste”,
+				values: [“push”],
+				controlId: “abx123”
+			},
+			…
+		]
 	}
 
-TASK
+`TASK`
+
 	{
 		task: {
 			“text”: “Move nipple left”,
@@ -38,17 +40,20 @@ TASK
 		}
 	}
 
-LEVEL_START
+`LEVEL_START`
+
 	{
 		level: 1
 	}
 
-LEVEL_END
+`LEVEL_END`
+
 	{
 		level: 1
 	}
 
-GAME_STATE
+`GAME_STATE`
+
 	{
 		state: {
 			“health”: 100,
@@ -59,8 +64,9 @@ GAME_STATE
 	}
 
 Client sends / server receives
+------------------------------
 
-JOIN
+`JOIN`
 Client sends:
 
 	{
@@ -72,12 +78,14 @@ Client sends:
 	}
 
 Server responds:
+
 	{
 		playerId: 3
 	}
 
-GAME_START
+`GAME_START`
 Client sends:
+
 	{
 		// empty
 	}
@@ -87,7 +95,8 @@ Server responds:
 		success: false		// or true, if successfully started
 	}
 
-ACTION
+`ACTION`
+
 	{
 		action: {
 			controlId: “abx123”,
@@ -98,35 +107,37 @@ ACTION
 
 Controls
 ========
-var CONTROL_TYPES = {
-	'toggle': {
-		name: "toggle",
-		values: ["on", "off"]
-	},
-	'dial': {
-		name: 'dial',
-		values: ["1", "2", "3", "4", "5"]
-	},
-	'button': {
-		name: ‘Button Label’,
-		values: ['press']
-	},
-	'slider': {
-		name: 'slider',
-		values: ["1", "2", "3", "4", "5"]
-	},
-	'shake': {
-		name: 'shake',
-		values: ['shake']
-	},
-	'flip': {
-		name: 'flip',
-		values: ['flip']
-	}
-};
+
+	var CONTROL_TYPES = {
+		'toggle': {
+			name: "toggle",
+			values: ["on", "off"]
+		},
+		'dial': {
+			name: 'dial',
+			values: ["1", "2", "3", "4", "5"]
+		},
+		'button': {
+			name: ‘Button Label’,
+			values: ['press']
+		},
+		'slider': {
+			name: 'slider',
+			values: ["1", "2", "3", "4", "5"]
+		},
+		'shake': {
+			name: 'shake',
+			values: ['shake']
+		},
+		'flip': {
+			name: 'flip',
+			values: ['flip']
+		}
+	};
 
 Game State
 ==========
+
 status:
 - PRE_GAME
 - GAME_STARTED
@@ -138,6 +149,7 @@ players
 
 Protocol
 ========
+
 1. Client establishes connection with server.  Server begins to send GAME_STATE every 1 second.
 2. Client sends JOIN to server to join game.   Server acknowledges.
 3. One client sends GAME_START when players are ready.
