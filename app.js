@@ -3,10 +3,8 @@ var io = require('socket.io')(app);
 var fs = require('fs');
 
 var PORT = 80;
-app.listen(PORT);
 
 // Serve sampleClient static files
-
 function handler (req, res) {
 	console.log(req.url);
 	var filepath = __dirname + '/sampleClient/';
@@ -24,6 +22,10 @@ function handler (req, res) {
     res.end(data);
   });
 }
+
+app.listen(PORT);
+
+console.log("Static sample client files are being served...");
 
 // Game config:
 
@@ -75,3 +77,5 @@ io.on('connection', function (socket) {
   });
 
 });
+
+console.log("Ready to talk to clients!");
