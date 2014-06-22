@@ -45,6 +45,8 @@ function GameState() {
 	this.tasks = [];
 	this.state = "PRE_GAME";
 	this.level = 1;
+
+	console.log("New game state set up!");
 }
 
 GameState.prototype.addPlayer = function(socket, controlCount, type) {
@@ -96,6 +98,11 @@ io.on('connection', function (socket) {
 
   socket.on('GAME_START', function(data) {
   	GAME.startGame();
+  });
+
+  socket.on('GAME_RESTART', function(data) {
+  	console.log("Restarting game...");
+  	GAME = new GameState();
   });
 
 });

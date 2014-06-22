@@ -18,6 +18,12 @@ $("#startGame").on('click', function() {
 	socket.emit("GAME_START", {});
 });
 
+$("#restartGame").on('click', function() {
+	console.log('Restarting game!');
+
+	socket.emit("GAME_RESTART", {});
+});
+
 socket.on('LEVEL_START', function(data) {
 	if (data.success === true) {
 		console.log("Game started!");
