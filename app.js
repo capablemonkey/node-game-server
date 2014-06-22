@@ -41,7 +41,7 @@ function Player(socket, controlCount, type, id) {
 
 function Control(name, type, values) {
 	this.name = name;
-	this.type = type;
+	this.type = type.name;
 	this.values = values || type.values;
 	this.controlId = uuid.v1();
 }
