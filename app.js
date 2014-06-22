@@ -106,10 +106,12 @@ GameState.prototype.startLevel = function() {
 
 GameState.prototype.broadcastState = function(socket) {
 	socket.emit('GAME_STATE', {
-		health: this.health,
-		score: this.score,
-		players: this.players.length,
-		status: this.state
+		state: {
+			health: this.health,
+			score: this.score,
+			players: this.players.length,
+			status: this.state
+		}
 	});
 };
 
@@ -128,6 +130,8 @@ GameState.prototype.assignControls = function() {
 		});
 	});
 };
+
+
 
 // Game config:
 
