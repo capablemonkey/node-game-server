@@ -83,8 +83,6 @@ console.log("Game state set up");
 // actual socket handling:
 
 io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-
   socket.on('JOIN', function (data) {
     console.log('attempting to join player: ', data);
     newPlayer = GAME.addPlayer(socket, data.controlCount, data.type);
