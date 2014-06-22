@@ -109,24 +109,39 @@ GameState.prototype.startGame = function() {
 	}
 };
 
+GameState.prototype.endLevel = function() {
+	// emit LEVEL_END
+	// start next level in 5 seconds
+	// set state to INTERMISSION
+	return true;
+};
+
 GameState.prototype.startLevel = function() {
 	// clear control and task state:
-	this.controls = null;
-	this.tasks = null;
+	this.controls = {};
+	this.tasks = [];
 
 	var level = this.level += 1;
 
+	// tell all clients the level has started
 	this.players.forEach(function(player) {
 		player.socket.emit("LEVEL_START", {
 			level: level
 		});
 	});
 
+	this.state = "LEVEL_IN_PROGRESS";
+
+	// assign controls to players and emit them
 	this.assignControls();
 
 	console.log(this.tasks);
 
+	// assign tasks to players and emit them
 	this.assignTasks();
+
+	// end the level after some amount of time defined in LEVEL_TIME_LIMIT object
+	setTimeout(this.endLevel, LEVEL_TIME_LIMIT[this.level]);
 };
 
 GameState.prototype.broadcastState = function(socket) {
@@ -141,12 +156,18 @@ GameState.prototype.broadcastState = function(socket) {
 };
 
 GameState.prototype.assignControls = function() {
-	var CONTROL_POOL = _.shuffle(CONTROLS);
+	var controlPool = _.shuffle(CONTROLS);
+
+	gameState = this;
+
+	controlPool.forEach(function(control) {
+		gameState.controls[control.controlId] = control;
+	});
 
 	// TODO: somehow figure out how controls are to be split up based on types the client accepts
 	this.players.forEach(function(player) {
-		player.controls.push(CONTROL_POOL.pop());
-		player.controls.push(CONTROL_POOL.pop());
+		player.controls.push(controlPool.pop());
+		player.controls.push(controlPool.pop());
 	});
 
 	this.players.forEach(function(player) {
@@ -159,9 +180,11 @@ GameState.prototype.assignControls = function() {
 GameState.prototype.assignTasks = function() {
 	// shuffle and take the first 4 tasks
 	// TODO: make sure chosen tasks do not act on the same controlId
-	this.tasks = _.first(_.shuffle(TASKS), 4);
+	// TODO: make sure each controlId belongs to a control which belongs to a player
+	// TODO: make sure task is destroyed after time limit
+	this.tasks = _.cloneDeep(_.first(_.shuffle(TASKS), 4));
 
-	tasksToEmit = this.tasks;
+	tasksToEmit = _.cloneDeep(this.tasks);
 	
 	this.players.forEach(function(player) {
 		var task = tasksToEmit.pop();
@@ -174,10 +197,37 @@ GameState.prototype.assignTasks = function() {
 	});
 };
 
+GameState.prototype.doAction = function(controlId, value) {
+	// check that state is LEVEL_IN_PROGRESS
+	if (this.state != "LEVEL_IN_PROGRESS") return false;
+
+	// set control currentvalue
+	control = this.controls[controlId];
+	console.log("CLIENT SET: ", control.name, " to: ", value);
+	control.currentValue = value;
+
+	foo = _.find(this.tasks, function(task) {
+		return task.controlId == controlId;
+	});
+
+	console.log(foo);
+
+	// satisfy task if equal to required value
+
+};
+
 // Game config:
 
 var PLAYERS_PER_ROOM = 4;
 var STATE_BROADCAST_INTERVAL = 1000;
+var LEVEL_TIME_LIMIT = {
+	1: 30000,
+	2: 30000,
+	3: 30000,
+	4: 30000,
+	5: 30000,
+	6: 30000
+};
 
 // control types and their default values
 var CONTROL_TYPES = {
@@ -269,6 +319,10 @@ io.on('connection', function (socket) {
   socket.on('GAME_RESTART', function(data) {
   	console.log("Restarting game...");
   	GAME = new GameState();
+  });
+
+  socket.on('ACTION', function(data) {
+  	GAME.doAction(data.controlId, data.value);
   });
 
 });
