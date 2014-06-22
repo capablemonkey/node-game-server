@@ -7,6 +7,24 @@ A sample client implemented in JS is included to demonstrate the commands and pr
 
 This Spaceteam clone, Spaceteem, had originally hoped to integrate an Oculus Rift, a Google Glass, 4 Pebble smartwatches, tablets, a Chromebook, a PS3 controller, a Sphereo, and a Magic Mouse to take Spaceteam to a new level.  Conceived at a hackathon, we gave up on building the clients needed at 5AM due to severe mental exhaustion.  But, the server is mostly implemented.
 
+
+Protocol
+========
+Server <-> Client communication protocol is described here:
+
+1. Client establishes connection with server.  Server begins to send GAME_STATE every 1 second.
+2. Client sends JOIN to server to join game.   Server acknowledges.
+3. One client sends GAME_START when players are ready.
+4. If 4 players joined, game will start.  Server sends LEVEL_START.
+5. Server sends ASSIGN_CONTROLS to clients.
+6. Server sends a TASK to client.
+7. Client will set any subsequent tasks received as the “current” task.
+8. Client sends ACTION to server when input is given
+9. Server continues to send GAME_STATE to client.
+10. Client will display state to user (health of ship, etc.)
+11. Server sends LEVEL_END to clients when level ends.
+
+
 Interface
 =========
 Server sends / client receives
@@ -137,27 +155,12 @@ Controls
 
 Game State
 ==========
-
-status:
-- PRE_GAME
-- GAME_STARTED
-- LEVEL_IN_PROGRESS
-- INTERMISSION
-health
-score
-players
-
-Protocol
-========
-
-1. Client establishes connection with server.  Server begins to send GAME_STATE every 1 second.
-2. Client sends JOIN to server to join game.   Server acknowledges.
-3. One client sends GAME_START when players are ready.
-4. If 4 players joined, game will start.  Server sends LEVEL_START.
-5. Server sends ASSIGN_CONTROLS to clients.
-6. Server sends a TASK to client.
-7. Client will set any subsequent tasks received as the “current” task.
-8. Client sends ACTION to server when input is given
-9. Server continues to send GAME_STATE to client.
-10. Client will display state to user (health of ship, etc.)
-11. Server sends LEVEL_END to clients when level ends.
+Game state keeps track of these parameters.
+- status:
+	- PRE_GAME
+	- GAME_STARTED
+	- LEVEL_IN_PROGRESS
+	- INTERMISSION
+- health
+- score
+- players
