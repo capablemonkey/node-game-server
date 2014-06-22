@@ -1,32 +1,12 @@
-var app = require('http').createServer(handler);
+var staticServerHandler = require('./staticServer');
+var app = require('http').createServer(staticServerHandler);
 var io = require('socket.io')(app);
 var fs = require('fs');
 var _  = require('lodash');
 var uuid = require('node-uuid');
 
 var PORT = process.env.PORT || 5000;
-
-// Serve sampleClient static files
-function handler (req, res) {
-	console.log(req.url);
-	var filepath = __dirname + '/sampleClient/';
-
-	if (req.url === '/client.js') filepath += 'client.js';
-	else filepath += 'index.html';
-
-  fs.readFile(filepath,
-  function (err, data) {
-    if (err) {
-      res.writeHead(500);
-    }
-
-    res.writeHead(200);
-    res.end(data);
-  });
-}
-
 app.listen(PORT);
-
 console.log("Static sample client files are being served...");
 
 // Game logic:
