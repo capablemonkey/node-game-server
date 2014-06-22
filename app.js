@@ -55,10 +55,23 @@ GameState.prototype.addPlayer = function(socket, controlCount, type) {
 };
 
 GameState.prototype.startGame = function() {
-	console.log("Starting game...");
-	this.players.forEach(function(player) {
-		player.socket.emit("LEVEL_START", player.socket.id);
-	});
+	console.log("Attempting to start game...");
+
+	if (this.players.length === PLAYERS_PER_ROOM) {
+		console.log("Game starting...");
+		this.players.forEach(function(player) {
+			player.socket.emit("LEVEL_START", {
+				success: true
+			});
+		});
+	} else {
+		console.log("Couldn't start game, not enough players.");
+		this.players.forEach(function(player) {
+			player.socket.emit("LEVEL_START", {
+				success: false
+			});
+		});
+	}
 };
 
 var GAME = new GameState();
@@ -74,13 +87,15 @@ io.on('connection', function (socket) {
     console.log('attempting to join player: ', data);
     newPlayer = GAME.addPlayer(socket, data.controlCount, data.type);
     console.log('Player #', GAME.players.length, ' joined!');
+    
+    // respond if successful:
     socket.emit("JOIN", {
     	playerId: newPlayer.id
     });
   });
 
   socket.on('GAME_START', function(data) {
-  	if (GAME.players.length === PLAYERS_PER_ROOM) GAME.startGame();
+  	GAME.startGame();
   });
 
 });

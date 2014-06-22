@@ -19,7 +19,12 @@ $("#startGame").on('click', function() {
 });
 
 socket.on('LEVEL_START', function(data) {
-	console.log("Game started!");
+	if (data.success === true) {
+		console.log("Game started!");
+	}
+	else if (data.success === false) {
+		console.log("Someone tried to start the game, but that failed.");
+	}
 });
 
 socket.on('JOIN', function(data){
