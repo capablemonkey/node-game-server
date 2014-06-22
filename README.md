@@ -7,6 +7,8 @@ A sample client implemented in JS is included to demonstrate the commands and pr
 
 This Spaceteam clone, Spaceteem, had originally hoped to integrate an Oculus Rift, a Google Glass, 4 Pebble smartwatches, tablets, a Chromebook, a PS3 controller, a Sphereo, and a Magic Mouse to take Spaceteam to a new level.  Conceived at a hackathon, we gave up on building the clients needed at 5AM due to severe mental exhaustion.  But, the server is mostly implemented.
 
+Running [live on heroku](http://spaceteem.herokuapp.com/) at the time of this writing.
+
 
 Protocol
 ========
@@ -24,6 +26,9 @@ Server <-> Client communication protocol is described here:
 10. Client will display state to user (health of ship, etc.)
 11. Server sends LEVEL_END to clients when level ends.
 
+TODO
+====
+There are a bunch of `TODO`s indicated in logic.js.  Only thing left to implement is `TaskManager`, whose job is to keep track of current tasks, which player they've been issued to, kill tasks after their time limit is expired, fulfill them when their criteria is fulfilled, and create a new one in its place and broadcast the task to a client who is awaiting a task.
 
 Interface
 =========
